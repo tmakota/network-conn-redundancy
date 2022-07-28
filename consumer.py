@@ -1,0 +1,66 @@
+import asyncio
+from time import sleep
+import websockets
+from websockets import ConnectionClosed
+
+'''
+The connection set has a list of all connections the client knows of. 
+New connections are added/removed from here based on their status
+'''
+connections = set()
+
+'''
+This function creates the initial connections.
+'''
+async def hello():
+    uri = "ws://localhost:3000"
+    test_uri = "ws://localhost:3000/test"
+    async with websockets.connect(uri) as websocket1:
+        connections.add(websocket1)
+        sleep(1)
+        async with websockets.connect(uri) as websocket2:
+            connections.add(websocket2)
+            sleep(1)
+            print("Websocket1: ", websocket1.id.hex, websocket1.local_address)
+            print("Websocket2: ", websocket2.id.hex, websocket2.local_address)
+            await websockets.connect(test_uri)
+            asyncio.gather(
+                    consumer_handler(websocket1),
+                    consumer_handler(websocket2), 
+                )
+            await check_conn_status(uri)
+            # websocket1_task = asyncio.create_task(check_conn_status(websocket1, uri))
+            # websocket2_task = asyncio.create_task(check_conn_status(websocket2, uri))
+
+'''
+This is the function which keeps listening for incoming packets over the websocket. Each connection should have one listener for it.
+'''
+async def consumer_handler(websocket):
+    async for message in websocket:
+        consumer(message, websocket)
+        
+'''
+This function is responsible for checking if all the websocket connections to the server are open. If closed, it creates a new connection to the server.
+'''
+async def check_conn_status(uri):
+    while True:
+        for websocket in connections:
+            print("Doing this for websocket:", websocket.id.hex)
+            if websocket.open == False:
+                connections.remove(websocket) #remove closed connection
+                websocket = await websockets.connect(uri)
+                connections.add(websocket) #add new connectionto connections set and add a listener for it. 
+                asyncio.gather(consumer_handler(websocket))
+        await asyncio.sleep(2)
+                
+'''
+This is the consumer processing function. Currently, it just prints the message sent to it. 
+This emulates what the client of the 'SDK' will be using the data it receives. 
+'''
+def consumer(msg, websocket):
+    print(msg, websocket.id.hex)
+    return 
+
+
+if __name__ == "__main__":
+    asyncio.run(hello())
