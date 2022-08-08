@@ -25,24 +25,24 @@ async def hello():
             print("Websocket2: ", websocket2.id.hex, websocket2.local_address)
             await websockets.connect(test_uri)
             asyncio.gather(
-                    consumer_handler(websocket1),
-                    consumer_handler(websocket2), 
+                    consumerHandler(websocket1),
+                    consumerHandler(websocket2), 
                 )
-            await check_conn_status(uri)
+            await checkConnStatus(uri)
             # websocket1_task = asyncio.create_task(check_conn_status(websocket1, uri))
             # websocket2_task = asyncio.create_task(check_conn_status(websocket2, uri))
 
 '''
 This is the function which keeps listening for incoming packets over the websocket. Each connection should have one listener for it.
 '''
-async def consumer_handler(websocket):
+async def consumerHandler(websocket):
     async for message in websocket:
         consumer(message, websocket)
         
 '''
 This function is responsible for checking if all the websocket connections to the server are open. If closed, it creates a new connection to the server.
 '''
-async def check_conn_status(uri):
+async def checkConnStatus(uri):
     while True:
         for websocket in connections:
             print("Doing this for websocket:", websocket.id.hex)
@@ -50,7 +50,7 @@ async def check_conn_status(uri):
                 connections.remove(websocket) #remove closed connection
                 websocket = await websockets.connect(uri)
                 connections.add(websocket) #add new connectionto connections set and add a listener for it. 
-                asyncio.gather(consumer_handler(websocket))
+                asyncio.gather(consumerHandler(websocket))
         await asyncio.sleep(2)
                 
 '''

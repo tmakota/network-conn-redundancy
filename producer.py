@@ -29,16 +29,19 @@ async def send(connId, msg):
 '''
 Function to keep a check for all the open connections in all connections
 '''
-def connection_checker():
-    for connPair in connections:
-        #for each connection pair, check if all the connections are open.
-        for conn in connections[connPair]:
-            if conn.open == False:
-                #close the connection and remove it from the pool. 
-                print("Removing connection")
-                if len(connections[connPair]) == 0:
-                    #all connections are closed, remove connections from dict as client is supposed to re-establish the connections. 
-                    del connections[connPair]
+async def connectionChecker():
+    while True:
+        for connectionId, connectionArray in list(connections.items()):
+            #for each connection pair, check if all the connections are open.
+            for conn in connections[connectionId]:
+                if conn.open == False:
+                    #close the connection and remove it from the pool. 
+                    print("Removing connection")
+                    connections[connectionId].remove(conn)
+                    if len(connections[connectionId]) == 0:
+                        #all connections are closed, remove connections from dict as client is supposed to re-establish the connections. 
+                        del connections[connectionId]
+        await asyncio.sleep(2)            
                     
 
 
@@ -79,22 +82,6 @@ def findConnPair(websocket):
             return conn
     return "None"
 
-
-'''
-The main function which accepts incoming client connections and routes them to the correct handler function.
-'''
-async def hello(websocket):
-    print(websocket.path)
-    if websocket.path == '/':
-        print("Socket added to connections")
-        conn = makeConnPair(websocket)
-        await msgReceiver(websocket)
-    elif websocket.path == "/test":
-        connId = findConnPair(websocket)
-        if connId != "None":
-            await testHandler(connId)
-            # await websocket.close()
-
 '''
 This function keeps the connections open.
 '''
@@ -120,6 +107,22 @@ async def testHandler(connId):
         del connections[conn]
         print(connections)
         print("All connections related to", conn, "closed.")
+
+'''
+The main function which accepts incoming client connections and routes them to the correct handler function.
+'''
+async def hello(websocket):
+    print(websocket.path)
+    if websocket.path == '/':
+        print("Socket added to connections")
+        conn = makeConnPair(websocket)
+        await msgReceiver(websocket)
+    elif websocket.path == "/test":
+        connId = findConnPair(websocket)
+        if connId != "None":
+            await testHandler(connId)
+            # await websocket.close()
+
 
     
 async def main():
