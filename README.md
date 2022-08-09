@@ -33,7 +33,11 @@ python3 consumer.py
 
 To mimic a broken connection use <code>iptables</code> to drop packets on one of the ports. The client identifies that the connection is broken and recreates a new one in some time. 
 
+<code>
+sudo iptables -A INPUT -p tcp --destination-port $PORT -j DROP
+</code>
 
+here, $PORT is the client port you want to block for mimicking a broken connection. 
 ---
 Parameters to play around. 
 
