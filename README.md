@@ -6,12 +6,15 @@ Please install the requirements using
 pip3 install -r requirements.txt
 </code>
 
-The server has to be started before the client.
+---
 
+Note: 
+1. The server has to be started before the client.
+2. This requires Python3.8 and above.
 ---
 ## Server
 
-Run the server using 
+Run the server using
 
 <code>
 python3 producer.py
@@ -21,7 +24,7 @@ python3 producer.py
 ---
 ## Client
 
-Run the client using 
+Run the client using  
 
 <code>
 python3 consumer.py
@@ -35,11 +38,12 @@ To mimic a broken connection use <code>iptables</code> to drop packets on one of
 
 <code>
 sudo iptables -A INPUT -p tcp --destination-port $PORT -j DROP
-</code>
+</code>  
 
-here, $PORT is the client port you want to block for mimicking a broken connection. 
+here, <code>$PORT</code> is the client port you want to block for mimicking a broken connection.  
+
 ---
-Parameters to play around. 
+Parameters to play around:
 
 **ping_interval**: This sets a time interval after which the server/client send a ping request, to which a pong response is sent. No pong response implies a broken connection.
 
