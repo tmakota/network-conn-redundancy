@@ -2,7 +2,9 @@ import asyncio
 from time import sleep
 import websockets
 from websockets.exceptions import ConnectionClosed
-#faker -> create specific messages. 
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 '''
 The connection dictionary has a list of all connections for a given client.
@@ -93,28 +95,26 @@ async def msgReceiver(websocket):
 A testhandler which mimics server sending data over when it has some.
 '''
 async def testHandler(connId):
-    print(connId)
+    i = 0 
     try:
-        for i in range(0,10):
-            msg = "Hi!"  + str(i)
+        while True:
+            msg = "Hi!" + str(i) 
             await send(connId, msg)
             await asyncio.sleep(4)
+            i = i + 1
     except AllConnectionsClosedError:
         #close all connections related to connId
         connPair = connections[conn]
         for conn in connPair:
             await conn.close()
         del connections[conn]
-        print(connections)
         print("All connections related to", conn, "closed.")
 
 '''
 The main function which accepts incoming client connections and routes them to the correct handler function.
 '''
 async def hello(websocket):
-    print(websocket.path)
     if websocket.path == '/':
-        print("Socket added to connections")
         conn = makeConnPair(websocket)
         await msgReceiver(websocket)
     elif websocket.path == "/test":
@@ -126,7 +126,10 @@ async def hello(websocket):
 
     
 async def main():
-    async with websockets.serve(hello, "localhost", 3000, ping_interval=1):
+    host = os.getenv('HOST')
+    pingInterval = os.getenv('PING_INTERVAL')
+    port = os.getenv('PORT')
+    async with websockets.serve(hello, host, port, ping_interval=int(pingInterval)):
         await asyncio.Future()  # run forever
 
 if __name__ == "__main__":

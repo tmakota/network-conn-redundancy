@@ -2,23 +2,26 @@ import asyncio
 from time import sleep
 import websockets
 from websockets import ConnectionClosed
-
+from dotenv import load_dotenv
+import os
 '''
 The connection set has a list of all connections the client knows of. 
 New connections are added/removed from here based on their status
 '''
 connections = set()
 
+load_dotenv()
 '''
 This function creates the initial connections.
 '''
 async def hello():
-    uri = "ws://localhost:3000"
-    test_uri = "ws://localhost:3000/test"
-    async with websockets.connect(uri) as websocket1:
+    pingInterval = int(os.getenv('PING_INTERVAL'))
+    uri = os.getenv('HOST')
+    test_uri = uri + "test"
+    async with websockets.connect(uri, ping_interval=pingInterval) as websocket1:
         connections.add(websocket1)
         sleep(1)
-        async with websockets.connect(uri) as websocket2:
+        async with websockets.connect(uri, ping_interval=pingInterval) as websocket2:
             connections.add(websocket2)
             sleep(1)
             print("Websocket1: ", websocket1.id.hex, websocket1.local_address)
@@ -45,7 +48,6 @@ This function is responsible for checking if all the websocket connections to th
 async def checkConnStatus(uri):
     while True:
         for websocket in connections:
-            print("Doing this for websocket:", websocket.id.hex)
             if websocket.open == False:
                 connections.remove(websocket) #remove closed connection
                 websocket = await websockets.connect(uri)
