@@ -1,6 +1,6 @@
 # How to guide
 
-Please install the requirements using
+Please install the requirements using:
 
 <code>
 pip3 install -r requirements.txt
@@ -13,7 +13,7 @@ Create a copy of .env file from the .env.example file to start the client and se
 ---
 ## Server
 
-Run the server using
+Run the server using:
 
 <code>
 python3 producer.py
